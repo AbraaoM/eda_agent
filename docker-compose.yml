@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  db:
+    image: docker.io/library/postgres:16-alpine
+    container_name: eda_agent_db
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=eda_agent_usr
+      - POSTGRES_PASSWORD=eda_agent_passd
+      - POSTGRES_DB=eda_agent_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - eda_agent_network
+
+volumes:
+  postgres_data:
+
+networks:
+  eda_agent_network:
+    driver: bridge
