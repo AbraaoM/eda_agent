@@ -1,9 +1,10 @@
 from fastapi import FastAPI
-from app.controllers import upload_controller
+from app.controllers import upload_controller, prompt_controller
 
 app = FastAPI()
 
 app.include_router(upload_controller.router)
+app.include_router(prompt_controller.router)
 
 @app.get("/")
 def read_root():

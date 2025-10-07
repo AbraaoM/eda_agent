@@ -27,7 +27,7 @@ class DataFrameAgent:
             return "Nenhum DataFrame carregado."
 
         try:
-            agent = create_pandas_dataframe_agent(self.llm, df, verbose=False)
+            agent = create_pandas_dataframe_agent(self.llm, df, verbose=False, allow_dangerous_code=True)
             result = agent.run(prompt)
             return str(result)
         except Exception as e:
