@@ -12,4 +12,4 @@ async def execute_prompt(request: PromptRequest):
     result = agent.handle_prompt(request.prompt)
     if result is None:
         raise HTTPException(status_code=500, detail="Erro ao processar o prompt.")
-    return {"result": result}
+    return result

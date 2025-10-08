@@ -21,3 +21,9 @@ typing-inspection==0.4.2
 typing_extensions==4.15.0
 tzdata==2025.2
 uvicorn==0.37.0
+matplotlib==3.8.0
+seaborn==0.13.0
+langchain==0.3.0
+langchain-experimental==0.3.0
+langchain-google-genai==2.0.5
+python-dotenv==1.0.0

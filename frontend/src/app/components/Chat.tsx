@@ -1,10 +1,17 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { sendPrompt } from "../services/promptService";
+import { sendPrompt, PromptResponse } from "../services/promptService";
+
+interface Message {
+  role: "user" | "agent";
+  text: string;
+  hasPlot?: boolean;
+  plotImage?: string;
+}
 
 export default function Chat() {
-  const [messages, setMessages] = useState<{ role: "user" | "agent"; text: string }[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -16,15 +23,22 @@ export default function Chat() {
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();
     if (!input.trim()) return;
-    const userMsg = { role: "user", text: input };
+    
+    const userMsg: Message = { role: "user", text: input };
     setMessages((msgs) => [...msgs, userMsg]);
     setLoading(true);
     setInput("");
-    const agentReply = await sendPrompt(input);
-    setMessages((msgs) => [
-      ...msgs,
-      { role: "agent", text: agentReply },
-    ]);
+    
+    const response: PromptResponse = await sendPrompt(input);
+    
+    const agentMsg: Message = {
+      role: "agent",
+      text: response.result,
+      hasPlot: response.has_plot,
+      plotImage: response.plot_image
+    };
+    
+    setMessages((msgs) => [...msgs, agentMsg]);
     setLoading(false);
   }
 
@@ -67,6 +81,16 @@ export default function Chat() {
                 )}
               </div>
               <span className="text-base">{msg.text}</span>
+              {msg.hasPlot && msg.plotImage && (
+                <div className="mt-3">
+                  <img 
+                    src={`data:image/png;base64,${msg.plotImage}`}
+                    alt="Gráfico gerado"
+                    className="rounded-lg shadow-md max-w-full h-auto border border-neutral-600"
+                    style={{ maxHeight: '400px' }}
+                  />
+                </div>
+              )}
             </div>
           </div>
         ))}

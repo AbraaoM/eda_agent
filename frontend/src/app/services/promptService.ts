@@ -1,4 +1,10 @@
-export async function sendPrompt(prompt: string): Promise<string> {
+export interface PromptResponse {
+  result: string;
+  has_plot?: boolean;
+  plot_image?: string;
+}
+
+export async function sendPrompt(prompt: string): Promise<PromptResponse> {
   try {
     const res = await fetch("http://localhost:8000/prompt/", {
       method: "POST",
@@ -9,8 +15,23 @@ export async function sendPrompt(prompt: string): Promise<string> {
       throw new Error("Erro ao processar o prompt.");
     }
     const data = await res.json();
-    return data.result ?? "Sem resposta do agente.";
+    
+    // Se o retorno for apenas uma string (compatibilidade com versão antiga)
+    if (typeof data === 'string') {
+      return { result: data };
+    }
+    
+    // Se o retorno for um objeto com result
+    if (data.result !== undefined) {
+      return {
+        result: data.result,
+        has_plot: data.has_plot || false,
+        plot_image: data.plot_image
+      };
+    }
+    
+    return { result: "Sem resposta do agente." };
   } catch (error: any) {
-    return error.message || "Erro desconhecido ao conectar ao backend.";
+    return { result: error.message || "Erro desconhecido ao conectar ao backend." };
   }
 }
