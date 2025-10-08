@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.controllers import upload_controller, prompt_controller
+from app.services.db import Base, engine
 
 app = FastAPI()
 
@@ -15,6 +16,10 @@ app.add_middleware(
 
 app.include_router(upload_controller.router)
 app.include_router(prompt_controller.router)
+
+@app.on_event("startup")
+def on_startup():
+    Base.metadata.create_all(bind=engine)
 
 @app.get("/")
 def read_root():
