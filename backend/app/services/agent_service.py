@@ -6,6 +6,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.memory import ConversationBufferMemory
 from dotenv import load_dotenv
 import os
+import pandas as pd
 
 class DataFrameAgent:
     """
@@ -21,16 +22,19 @@ class DataFrameAgent:
         self.llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash-lite", google_api_key=GEMINI_KEY)
         self.memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 
-    def handle_prompt(self, prompt: str) -> dict:
+    def handle_prompt(self, prompt: str, csv_filepath: str) -> dict:
         """
-        Recebe um prompt e executa operações no DataFrame ou repassa para a LLM via agente pandas.
-        Retorna um dicionário com o resultado e informação se contém gráfico.
+        Recebe um prompt e o caminho do CSV a ser usado.
+        Carrega o CSV no singleton e executa as operações solicitadas.
         """
-        df = self.singleton.get_df()
-        if df is None:
-            return {"result": "Nenhum DataFrame carregado.", "has_plot": False}
-
         try:
+            # Carregar o CSV específico no singleton
+            df = pd.read_csv(csv_filepath)
+            self.singleton.set_df(df)
+            
+            if df is None:
+                return {"result": "Erro ao carregar o DataFrame.", "has_plot": False}
+
             # Verifica se o prompt solicita um gráfico
             plot_keywords = [
                 "gere um gráfico", "criar gráfico", "plot", "gráfico", 
