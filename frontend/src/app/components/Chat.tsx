@@ -1,17 +1,14 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { sendPrompt, PromptResponse } from "../services/promptService";
+import { sendPrompt } from "../services/promptService";
 
-interface Message {
-  role: "user" | "agent";
-  text: string;
-  hasPlot?: boolean;
-  plotImage?: string;
+interface ChatProps {
+  chatId: number;
 }
 
-export default function Chat() {
-  const [messages, setMessages] = useState<Message[]>([]);
+export default function Chat({ chatId }: ChatProps) {
+  const [messages, setMessages] = useState<{ role: "user" | "agent"; text: string }[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -23,22 +20,24 @@ export default function Chat() {
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();
     if (!input.trim()) return;
-    
-    const userMsg: Message = { role: "user", text: input };
+
+    const userMsg = { role: "user", text: input };
     setMessages((msgs) => [...msgs, userMsg]);
     setLoading(true);
     setInput("");
-    
-    const response: PromptResponse = await sendPrompt(input);
-    
-    const agentMsg: Message = {
-      role: "agent",
-      text: response.result,
-      hasPlot: response.has_plot,
-      plotImage: response.plot_image
-    };
-    
-    setMessages((msgs) => [...msgs, agentMsg]);
+
+    try {
+      const response = await sendPrompt(input, chatId);
+      setMessages((msgs) => [
+        ...msgs,
+        { role: "agent", text: response.result }
+      ]);
+    } catch (error) {
+      setMessages((msgs) => [
+        ...msgs,
+        { role: "agent", text: "Erro ao processar sua mensagem." }
+      ]);
+    }
     setLoading(false);
   }
 
@@ -47,7 +46,9 @@ export default function Chat() {
       {/* Área de mensagens */}
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
         {messages.length === 0 && !loading && (
-          <div className="text-center text-neutral-400">Nenhuma conversa ainda.</div>
+          <div className="text-center text-neutral-400">
+            Envie uma mensagem para começar a análise do CSV
+          </div>
         )}
         {messages.map((msg, idx) => (
           <div
@@ -62,35 +63,19 @@ export default function Chat() {
                   : "bg-neutral-800 text-white self-start rounded-bl-sm border border-neutral-700"}
                 whitespace-pre-wrap break-words
               `}
-              style={{
-                marginBottom: idx < messages.length - 1 ? "0.5rem" : 0,
-                marginTop: idx > 0 && messages[idx - 1].role !== msg.role ? "0.5rem" : 0,
-              }}
             >
               <div className="flex items-center gap-2 mb-1">
                 {msg.role === "user" ? (
                   <>
                     <span className="font-semibold text-xs text-primary-content/80">Você</span>
-                    <span className="i-mdi-account-circle text-xl" />
                   </>
                 ) : (
                   <>
-                    <span className="i-mdi-robot text-xl" />
                     <span className="font-semibold text-xs text-secondary-content/80">Agente</span>
                   </>
                 )}
               </div>
               <span className="text-base">{msg.text}</span>
-              {msg.hasPlot && msg.plotImage && (
-                <div className="mt-3">
-                  <img 
-                    src={`data:image/png;base64,${msg.plotImage}`}
-                    alt="Gráfico gerado"
-                    className="rounded-lg shadow-md max-w-full h-auto border border-neutral-600"
-                    style={{ maxHeight: '400px' }}
-                  />
-                </div>
-              )}
             </div>
           </div>
         ))}
@@ -98,7 +83,6 @@ export default function Chat() {
         {loading && (
           <div className="flex justify-start">
             <div className="max-w-xl px-5 py-3 rounded-2xl shadow bg-neutral-800 text-white self-start rounded-bl-sm border border-neutral-700 flex items-center gap-2">
-              <span className="i-mdi-robot text-xl" />
               <span className="font-semibold text-xs text-secondary-content/80">Agente</span>
               <span className="loading loading-dots loading-md ml-2" />
             </div>
@@ -106,6 +90,7 @@ export default function Chat() {
         )}
         <div ref={bottomRef} />
       </div>
+
       {/* Campo de entrada */}
       <form
         className="p-4 border-t border-neutral-800 bg-neutral-900 flex gap-2 rounded-b-xl"
