@@ -3,13 +3,14 @@ from app.services.plot_service import PlotService
 
 from langchain_experimental.agents import create_pandas_dataframe_agent
 from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain.memory import ConversationBufferMemory
 from dotenv import load_dotenv
 import os
 
 class DataFrameAgent:
     """
     Agente que opera sobre um DataFrame carregado em tempo de execução via singleton.
-    Permite executar comandos e consultas sobre os dados, com suporte a LLM Google Generative AI.
+    Permite executar comandos e consultas sobre os dados, com suporte a LLM Google Generative AI e memória de conversação.
     """
 
     def __init__(self):
@@ -18,6 +19,7 @@ class DataFrameAgent:
 
         self.singleton = CSVDataSingleton()
         self.llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash-lite", google_api_key=GEMINI_KEY)
+        self.memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 
     def handle_prompt(self, prompt: str) -> dict:
         """
