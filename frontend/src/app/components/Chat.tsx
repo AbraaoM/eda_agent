@@ -7,8 +7,14 @@ interface ChatProps {
   chatId: number;
 }
 
+interface Message {
+  role: "user" | "agent";
+  text: string;
+  plot_image?: string;
+}
+
 export default function Chat({ chatId }: ChatProps) {
-  const [messages, setMessages] = useState<{ role: "user" | "agent"; text: string }[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -30,7 +36,11 @@ export default function Chat({ chatId }: ChatProps) {
       const response = await sendPrompt(input, chatId);
       setMessages((msgs) => [
         ...msgs,
-        { role: "agent", text: response.result }
+        { 
+          role: "agent", 
+          text: response.result,
+          plot_image: response.has_plot ? response.plot_image : undefined
+        }
       ]);
     } catch (error) {
       setMessages((msgs) => [
@@ -66,16 +76,32 @@ export default function Chat({ chatId }: ChatProps) {
             >
               <div className="flex items-center gap-2 mb-1">
                 {msg.role === "user" ? (
-                  <>
-                    <span className="font-semibold text-xs text-primary-content/80">Você</span>
-                  </>
+                  <span className="font-semibold text-xs text-primary-content/80">
+                    Você
+                  </span>
                 ) : (
-                  <>
-                    <span className="font-semibold text-xs text-secondary-content/80">Agente</span>
-                  </>
+                  <span className="font-semibold text-xs text-secondary-content/80">
+                    Agente
+                  </span>
                 )}
               </div>
-              <span className="text-base">{msg.text}</span>
+              
+              <div className="flex flex-col gap-4">
+                <span className="text-base">{msg.text}</span>
+                {msg.plot_image && (
+                  <div className="mt-2">
+                    <img
+                      src={`data:image/png;base64,${msg.plot_image}`}
+                      alt="Visualization plot"
+                      className="rounded-lg w-full max-w-2xl h-auto"
+                      onError={(e) => {
+                        console.error('Error loading image');
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         ))}
