@@ -9,16 +9,16 @@ export default function Home() {
   const [selectedChat, setSelectedChat] = useState<ChatType | null>(null);
 
   return (
-    <div className="min-h-screen bg-black text-white flex">
+    <div className="min-h-screen h-screen bg-black text-white flex">
       <ChatList
         onSelectChat={setSelectedChat}
         selectedChatId={selectedChat?.id}
       />
-      <div className="flex-1 flex items-center justify-center">
+      <div className="flex-1 p-4">
         {selectedChat ? (
           <Chat chatId={selectedChat.id} />
         ) : (
-          <div className="text-neutral-400">
+          <div className="h-full flex items-center justify-center text-neutral-400">
             Selecione ou crie um chat para começar
           </div>
         )}

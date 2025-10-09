@@ -42,7 +42,7 @@ export default function Chat({ chatId }: ChatProps) {
   }
 
   return (
-    <div className="w-full max-w-2xl flex flex-col h-[80vh] rounded-xl shadow-lg border border-neutral-800 bg-neutral-900">
+    <div className="h-full flex flex-col rounded-xl shadow-lg border border-neutral-800 bg-neutral-900">
       {/* Área de mensagens */}
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
         {messages.length === 0 && !loading && (
